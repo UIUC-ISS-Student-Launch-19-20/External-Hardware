@@ -2,6 +2,6 @@
 
 Tasked with interfacing with external hardware on the UAV.
 
-Current Members
+##### Current Members
 - Maya Chattoraj
 - Evan Lindquist
