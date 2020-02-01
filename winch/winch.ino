@@ -19,7 +19,7 @@ void setup() {
     long newPosition = myenc.read(); // create instance of variable for new encoder position
     if (newPosition != oldPosition) {
         oldPosition = newPosition; // set the current position of encoder to old position for next loop
-        Serial.println(newPosition);
+        Serial.println(newPosition); // print position of rotary encoder to the serial monitor
     }
     if(newPosition >= target) {
        myservo.write(87); // turn off servo
