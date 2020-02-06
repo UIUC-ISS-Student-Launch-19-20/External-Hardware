@@ -7,7 +7,7 @@ Encoder myenc(2, 3); // create encoder object
 // values for the encoder and servo
 long oldPosition  = -999; // initialize an old position
 long newPosition; // creates variable to hold new position
-long finalTarget = 5000; // declare the final descent target
+long finalTarget = 10000; // declare the final descent target
 long target = 0; // set the initial target value
 long offTarget; // creates variable to hold difference between current position and target
 int maxSpeed = 180; // sets maximum speed of the servo
@@ -19,6 +19,11 @@ boolean timerRunning = false;
 unsigned long refreshInterval = 1000; // reset every 1 second
 unsigned long lastRefreshTime = 0;
 unsigned long endTime = 10000; // end after 10 seconds
+
+// values for rotation counting
+unsigned long lastRefreshCount = 0;
+unsigned long unitsPerRot = 2350; // 2350 encoder units corresponds to one full rotation
+unsigned long totalRotations = 0; 
 
 void setup() { 
     myservo.attach(9); // attach servo to Arduino pin
@@ -40,16 +45,21 @@ void setup() {
     if (millis() - lastRefreshTime >= refreshInterval) {
       lastRefreshTime = millis();
       target += 500;
-      Serial.print("lastRefreshTime: ");
-      Serial.println(lastRefreshTime);
-      Serial.print("target: ");
-      Serial.println(target);
     }
     
     newPosition = myenc.read(); // create instance of variable for new encoder position
     if (newPosition != oldPosition) {
         oldPosition = newPosition; // set the current position of encoder to old position for next loop
-//        Serial.println(newPosition); // print position of rotary encoder to the serial monitor
+    }
+
+    // counts total number of rotations completed by encoder
+    // waits 2 sec to start calculating due to inaccuracy of initial encoder readings 
+    if (newPosition - lastRefreshCount >= unitsPerRot && millis() > 2000) {
+      Serial.println(newPosition - lastRefreshCount); 
+      lastRefreshCount = newPosition; 
+      totalRotations += 1;
+      Serial.print(totalRotations);
+      Serial.println(" ROTATIONS COMPLETED");
     }
 
     offTarget = target - newPosition; 
@@ -61,20 +71,12 @@ void setup() {
     }
 
     if (newPosition >= finalTarget) {
+      Serial.print("FINAL POSITION: ");
+      Serial.println(newPosition);
       myservo.write(87); // turn off servo
       while(1) {}
     }
 
     myservo.write(maxSpeed * scaleFactor);
     
-    /*   
-    if(newPosition >= target) {
-       myservo.write(87); // turn off servo
-       if (newPosition <= finalTarget) {
-         delay(10); // delay, replace with adequate action
-         myservo.write(180); // turn on servo
-       }
- 
-    }
-    */ 
  }
