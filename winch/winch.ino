@@ -7,7 +7,7 @@ Encoder myenc(2, 3); // create encoder object
 // values for the encoder and servo
 long oldPosition  = -999; // initialize an old position
 long newPosition; // creates variable to hold new position
-long finalTarget = 10000; // declare the final descent target
+long finalTarget = 5000; // declare the final descent target
 long target = 0; // set the initial target value
 long offTarget; // creates variable to hold difference between current position and target
 int maxSpeed = 180; // sets maximum speed of the servo
@@ -44,7 +44,7 @@ void setup() {
     // increments target every time the refresh interval is completed
     if (millis() - lastRefreshTime >= refreshInterval) {
       lastRefreshTime = millis();
-      target += 500;
+      target += 750;
     }
     
     newPosition = myenc.read(); // create instance of variable for new encoder position
