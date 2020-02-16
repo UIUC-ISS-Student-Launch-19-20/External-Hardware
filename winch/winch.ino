@@ -1,8 +1,11 @@
 #include <Encoder.h>
 #include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_MPL3115A2.h>
 
 Servo myservo; // create servo object
 Encoder myenc(2, 3); // create encoder object
+Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 
 // values for the encoder and servo
 long oldPosition  = -999; // initialize an old position
@@ -25,6 +28,13 @@ unsigned long lastRefreshCount = 0;
 unsigned long unitsPerRot = 2350; // 2350 encoder units corresponds to one full rotation
 unsigned long totalRotations = 0; 
 
+// variables for altimeter
+float pressure;
+float initAlt;
+int altCount = 0; // use to set initAlt only once
+float altitude;
+float tempC;
+
 void setup() { 
     myservo.attach(9); // attach servo to Arduino pin
     myenc.write(0); // write the base value to the encoder
@@ -32,34 +42,63 @@ void setup() {
 
     timerStart = millis(); // start timer
     timerRunning = true; // not finished yet (is false when finished)
- } 
+
+  }
  
  void loop() {
+    // check for altimeter connection
+    if (! baro.begin()) {
+      Serial.println("CAN'T CONNECT TO ALTIMETER");
+      return;
+    }
+
+    pressure = baro.getPressure();
+    altitude = baro.getAltitude();
+    tempC = baro.getTemperature();
+
+    if (altCount == 0) {
+      initAlt = altitude;
+      Serial.print("INITIAL ALTITUDE: "); Serial.print(initAlt); Serial.println(" m");
+      altCount++;
+    }
+
+    Serial.print("Altitude: "); Serial.print(altitude); Serial.println(" m");
+    // Serial.print("Pressure: "); Serial.print(pressure); Serial.println(" pascals");
+    // Serial.print("Temperature: "); Serial.print(tempC); Serial.println(" C");
+
+    if (altitude - initAlt < 1.0) {
+      myservo.write(87);
+      return;
+    }
+
+    /* 
+     *  Testing purposes only 
     // check if endTime has been reached; if so, turn off servo
-    if (timerRunning && ((millis() - timerStart >= endTime))) {
+    if (timerRunning && (millis() - timerStart >= endTime)) {
       timerRunning = false;
       myservo.write(87);
+      while(1) {}
     }
+    */
 
     // increments target every time the refresh interval is completed
     if (millis() - lastRefreshTime >= refreshInterval) {
       lastRefreshTime = millis();
-      target += 750;
+      target += 500;
     }
     
     newPosition = myenc.read(); // create instance of variable for new encoder position
     if (newPosition != oldPosition) {
         oldPosition = newPosition; // set the current position of encoder to old position for next loop
+        Serial.print("encoder position: "); Serial.println(newPosition);
     }
 
     // counts total number of rotations completed by encoder
     // waits 2 sec to start calculating due to inaccuracy of initial encoder readings 
     if (newPosition - lastRefreshCount >= unitsPerRot && millis() > 2000) {
-      Serial.println(newPosition - lastRefreshCount); 
       lastRefreshCount = newPosition; 
       totalRotations += 1;
-      Serial.print(totalRotations);
-      Serial.println(" ROTATIONS COMPLETED");
+      Serial.print(totalRotations); Serial.println(" ROTATIONS COMPLETED");
     }
 
     offTarget = target - newPosition; 
@@ -74,9 +113,10 @@ void setup() {
       Serial.print("FINAL POSITION: ");
       Serial.println(newPosition);
       myservo.write(87); // turn off servo
-      while(1) {}
+      while(1) {} 
     }
 
     myservo.write(maxSpeed * scaleFactor);
+    Serial.println("");
     
  }
