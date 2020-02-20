@@ -10,7 +10,7 @@ Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
 // values for the encoder and servo
 long oldPosition  = -999; // initialize an old position
 long newPosition; // creates variable to hold new position
-long finalTarget = 5000; // declare the final descent target
+long finalTarget = 10000; // declare the final descent target
 long target = 0; // set the initial target value
 long offTarget; // creates variable to hold difference between current position and target
 int maxSpeed = 180; // sets maximum speed of the servo
@@ -62,29 +62,20 @@ void setup() {
       altCount++;
     }
 
-    Serial.print("Altitude: "); Serial.print(altitude); Serial.println(" m");
+    // Serial.print("Altitude: "); Serial.print(altitude); Serial.println(" m");
     // Serial.print("Pressure: "); Serial.print(pressure); Serial.println(" pascals");
     // Serial.print("Temperature: "); Serial.print(tempC); Serial.println(" C");
 
-    if (altitude - initAlt < 1.0) {
-      myservo.write(87);
+    if (altitude - initAlt < 0.3) {
+      myservo.detach();
+      digitalWrite(9, LOW);
       return;
     }
-
-    /* 
-     *  Testing purposes only 
-    // check if endTime has been reached; if so, turn off servo
-    if (timerRunning && (millis() - timerStart >= endTime)) {
-      timerRunning = false;
-      myservo.write(87);
-      while(1) {}
-    }
-    */
 
     // increments target every time the refresh interval is completed
     if (millis() - lastRefreshTime >= refreshInterval) {
       lastRefreshTime = millis();
-      target += 500;
+      target += 750;
     }
     
     newPosition = myenc.read(); // create instance of variable for new encoder position
@@ -98,7 +89,7 @@ void setup() {
     if (newPosition - lastRefreshCount >= unitsPerRot && millis() > 2000) {
       lastRefreshCount = newPosition; 
       totalRotations += 1;
-      Serial.print(totalRotations); Serial.println(" ROTATIONS COMPLETED");
+      Serial.print("ROTATIONS COMPLETED: "); Serial.println(totalRotations);
     }
 
     offTarget = target - newPosition; 
@@ -112,10 +103,12 @@ void setup() {
     if (newPosition >= finalTarget) {
       Serial.print("FINAL POSITION: ");
       Serial.println(newPosition);
-      myservo.write(87); // turn off servo
+      myservo.detach(); // turn off servo
+      digitalWrite(9, LOW);
       while(1) {} 
     }
 
+    myservo.attach(9);
     myservo.write(maxSpeed * scaleFactor);
     Serial.println("");
     
