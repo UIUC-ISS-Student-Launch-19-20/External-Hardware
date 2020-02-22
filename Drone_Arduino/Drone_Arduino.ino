@@ -16,6 +16,7 @@
 
 //control variables
 int arms_deploy = 0;
+int drone_deploy = 0;
 
 void setup() {
     pinMode(burnwire_arms, OUTPUT);
@@ -52,6 +53,7 @@ void loop() {
        digitalWrite(burnwire_winch, HIGH);
        delay(3000);
        digitalWrite(burnwire_winch, LOW);
+       drone_deploy = 1;
     }
   }
 }
