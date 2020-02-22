@@ -10,7 +10,9 @@
 #define arm4 9
 #define irma 10
 
-#define droneController 11 
+#define drone_tether 11 // cut arms, pr OR dr
+#define drone_arms 12 // cut tether
+
 
 //control variables
 int arms_deploy = 0;
@@ -35,11 +37,17 @@ void loop() {
         delay(3000);
         digitalWrite(burnwire_arms, LOW);
         arms_deploy = 1;
-      }
+      } 
+    }
+    if(drone_arms == HIGH) {
+        digitalWrite(burnwire_arms, HIGH);
+        delay(3000);
+        digitalWrite(burnwire_arms, LOW);
+        arms_deploy = 1;
     }
   }
 
-  if (arms_deploy == 1 && droneController == HIGH) {
+  if (arms_deploy == 1 && drone_tether == HIGH) {
     if (arm1 == HIGH && arm2 == HIGH && arm3 == HIGH && arm4 == HIGH) { 
        digitalWrite(burnwire_winch, HIGH);
        delay(3000);
