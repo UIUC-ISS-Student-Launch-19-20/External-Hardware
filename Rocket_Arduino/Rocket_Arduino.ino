@@ -22,10 +22,11 @@ int oldPosition = -999;
 int newPosition;
 int finalTarget = 10000; // in Encoder Units
 int target = 0;
+int targetInc = 750;
 int maxSpeed = 180; // max winch speed
 int scaleFactor;
 unsigned int lastRefreshPosition = 0;
-unsigned int unitsPerRotation = 2350; // corresponds to one full rotation
+unsigned int unitsPerRotation = 2350; // corresponds to one full rotation of the ENCODER (not servo)
 unsigned int totalRotations = 0;
 
 // Timer Values
@@ -35,11 +36,14 @@ unsigned long lastRefresh = 0;
 // Barometer Variables
 float initAlt; // initialized as altitude of launch sight
 float releaseAlt; // absolute altitude
-float targetReleaseAlt = 700; // our target relative to ground
+float targetReleaseAlt = 700 / 3.28084; // our target relative to ground (converted 700ft to meters)
 float altitude; // current altitude
 
 
 void setup() {
+    if (! baro.begin()) {
+      // put in troubleshooting here
+    }
     initAlt = baro.getAltitude();
     releaseAlt = initAlt + targetReleaseAlt;
     digitalWrite(solenoids, LOW);
@@ -65,9 +69,6 @@ void loop() {
 }
 
 void baroInst() {
-  if(! baro.begin()) {
-      // insert code for communication network
-  }
   altitude = baro.getAltitude();
   if(altitude <= releaseAlt) {
       deployInit();
@@ -90,7 +91,7 @@ void timerInit() {
 void timer() {
     if (millis() - lastRefresh >= refreshInterval) {
         lastRefresh = millis();
-        target += 750;
+        target += targetInc;
     }
 }
 
@@ -110,11 +111,11 @@ void encoderUpdate() {
 
 void speedRefresh() {
     scaleFactor = (target - newPosition) / 250; // scales by maximum that position is expected to be off by
+    if (scaleFactor < 0) {
+      scaleFactor = scaleFactor * -1;
+    }
     if (scaleFactor > 1) {
         scaleFactor = 1; 
-    }
-    else if (scaleFactor < -1) {
-        scaleFactor = -1;
     }
 }
 
