@@ -19,7 +19,7 @@ int scaleFactor; // creates variable for scaling of servo speed based on accurac
 // values for the timer
 unsigned long timerStart = 0;
 boolean timerRunning = false;
-unsigned long refreshInterval = 1000; // reset every 1 second
+unsigned long refreshInterval = 500; // reset every 1 second
 unsigned long lastRefreshTime = 0;
 unsigned long endTime = 10000; // end after 10 seconds
 
@@ -94,10 +94,11 @@ void setup() {
 
     offTarget = target - newPosition; 
     scaleFactor = offTarget / 250; // scales by maximum that position is expected to be off by
+    if (scaleFactor < 0) {
+      scaleFactor = scaleFactor * -1;
+    }
     if (scaleFactor > 1) {
       scaleFactor = 1; 
-    } else if (scaleFactor < -1) {
-      scaleFactor = -1;
     }
 
     if (newPosition >= finalTarget) {
@@ -109,7 +110,7 @@ void setup() {
     }
 
     myservo.attach(9);
-    myservo.write(maxSpeed * scaleFactor);
+    myservo.write(180 - (maxSpeed * scaleFactor));
     Serial.println("");
     
  }
