@@ -10,8 +10,7 @@
 #define arm4 9
 #define irma 10
 
-#define go_in 11
-#define go_out 12
+#define droneController 11 
 
 //control variables
 int arms_deploy = 0;
@@ -29,10 +28,22 @@ void setup() {
 
 void loop() {
   if(! arms_deploy) {
-      if(photoresistor1 | photoresistor2) {
-          digitalWrite(burnwire_arms, HIGH);
-          arms_deploy = 1;
+    if(photoresistor1 | photoresistor2) {
+      delay(5000);
+      if (photoresistor1 | photoresistor2) {
+        digitalWrite(burnwire_arms, HIGH);
+        delay(3000);
+        digitalWrite(burnwire_arms, LOW);
+        arms_deploy = 1;
       }
+    }
   }
-  
+
+  if (arms_deploy == 1 && droneController == HIGH) {
+    if (arm1 == HIGH && arm2 == HIGH && arm3 == HIGH && arm4 == HIGH) { 
+       digitalWrite(burnwire_winch, HIGH);
+       delay(3000);
+       digitalWrite(burnwire_winch, LOW);
+    }
+  }
 }
